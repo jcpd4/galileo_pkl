@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgendaMaster - Gestión de Ventas Amazon</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4F46E5',
+                        secondary: '#10B981',
+                        dark: '#1F2937',
+                        light: '#F9FAFB'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .progress-bar {
+            transition: width 0.5s ease-in-out;
+        }
+        .chart-container {
+            /* Asegúrate de que tenga una altura definida o flex para que el canvas se dibuje */
+            height: 400px; /* Ya lo ajustamos en JS, pero un fallback aquí es bueno */
+        }
+        @media (max-width: 640px) {
+            .mobile-stack {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans">
+    <div class="min-h-screen">
+        <header class="bg-white shadow-sm">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-book text-primary text-2xl"></i>
+                    <h1 class="text-xl font-bold text-gray-800">AgendaMaster</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="familias.html" class="px-4 py-2 bg-secondary text-white rounded-md shadow-sm hover:bg-green-600 transition duration-150 ease-in-out">
+                        <i class="fas fa-layer-group mr-2"></i> Gestionar Familias
+                    </a>
+                    <div class="relative">
+                        <i class="fas fa-bell text-gray-500 text-xl"></i>
+                        <span class="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500"></span>
+                    </div>
+                    <div class="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-white font-medium">AM</div>
+                </div>
+            </div>
+        </header>
+
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="mb-8">
+                <h2 class="text-2xl font-bold text-gray-800">Panel de Gestión de Ventas</h2>
+                <p class="text-gray-600">Seguimiento de tus objetivos mensuales para las agendas en Amazon</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500">Ventas este mes</p>
+                            <h3 class="text-2xl font-bold text-gray-800" id="currentMonthSales">1,248 uds.</h3>
+                            <p class="text-sm text-green-500 flex items-center">
+                                <i class="fas fa-arrow-up mr-1"></i> 12% vs mes pasado
+                            </p>
+                        </div>
+                        <div class="bg-blue-100 p-3 rounded-full">
+                            <i class="fas fa-shopping-cart text-primary text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500">Facturación este mes</p>
+                            <h3 class="text-2xl font-bold text-gray-800" id="currentMonthRevenue">€8,745</h3>
+                            <p class="text-sm text-green-500 flex items-center">
+                                <i class="fas fa-arrow-up mr-1"></i> 18% vs mes pasado
+                            </p>
+                        </div>
+                        <div class="bg-green-100 p-3 rounded-full">
+                            <i class="fas fa-euro-sign text-secondary text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500">Facturación vs. año pasado</p>
+                            <h3 class="text-2xl font-bold text-gray-800" id="yearlyComparison">€7,500</h3>
+                            <p class="text-sm text-red-500 flex items-center">
+                                <i class="fas fa-arrow-down mr-1"></i> -14% vs Junio 2024
+                            </p>
+                        </div>
+                        <div class="bg-red-100 p-3 rounded-full">
+                            <i class="fas fa-chart-line text-red-600 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500">Objetivo mensual</p>
+                            <h3 class="text-2xl font-bold text-gray-800" id="monthlyGoal">€12,000</h3>
+                            <p class="text-sm text-gray-500" id="goalCompletion">72.9% completado</p>
+                        </div>
+                        <div class="bg-purple-100 p-3 rounded-full">
+                            <i class="fas fa-bullseye text-purple-600 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold text-gray-800">Progreso de facturación mensual</h3>
+                <div class="flex items-center space-x-2">
+                    <button id="setGoalsBtn" class="px-3 py-1 bg-primary text-white rounded-md text-sm hover:bg-primary-dark transition duration-150 ease-in-out">
+                        <i class="fas fa-bullseye mr-1"></i> Establecer Objetivo
+                    </button>
+                    <div class="relative">
+                        <select class="appearance-none bg-gray-100 border border-gray-200 rounded-md px-3 py-1 pr-8 text-sm focus:outline-none focus:ring-1 focus:ring-primary">
+                            <option>Junio 2025</option>
+                            <option>Mayo 2025</option>
+                            <option>Abril 2025</option>
+                        </select>
+                        <i class="fas fa-chevron-down absolute right-3 top-2 text-gray-500 text-xs"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow p-6 mb-8">
+                <div class="chart-container">
+                    <canvas id="progressChart"></canvas>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow p-6 lg:col-span-1 hidden">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Establecer objetivo</h3>
+                <form id="goalForm">
+                    <div class="mb-4">
+                        <label for="goalYear" class="block text-sm font-medium text-gray-700 mb-1">Año del objetivo</label>
+                        <select id="goalYear" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary">
+                            <option>2024</option>
+                            <option selected>2025</option>
+                            <option>2026</option>
+                        </select>
+                    </div>
+                    <div id="monthlyGoalsContainer" class="mb-6">
+                    </div>
+                    <div class="mb-6">
+                        <label for="goalColor" class="block text-sm font-medium text-gray-700 mb-1">Color de la línea de objetivo</label>
+                        <input type="color" id="goalColor" class="w-full h-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary" value="#FF6384">
+                    </div>
+                    <button type="submit" class="w-full bg-primary hover:bg-primary-dark text-white py-2 px-4 rounded-md shadow-sm font-medium transition duration-150 ease-in-out">
+                        Guardar objetivos
+                    </button>
+                </form>
+            </div>
+        
+
+            <div class="bg-white rounded-lg shadow overflow-hidden mb-8">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-semibold text-gray-800">Rendimiento por modelo de agenda</h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Modelo</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ventas</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Facturación</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">% del total</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tendencia</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0 h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center">
+                                            <i class="fas fa-book text-blue-600"></i>
+                                        </div>
+                                        <div class="ml-4">
+                                            <div class="text-sm font-medium text-gray-900">Agenda Profesional</div>
+                                            <div class="text-sm text-gray-500">Ref: AP-2023</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">452</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">€3,164</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                        <div class="bg-blue-600 h-2.5 rounded-full" style="width: 36%"></div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                        <i class="fas fa-arrow-up mr-1"></i> 8%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0 h-10 w-10 bg-green-100 rounded-full flex items-center justify-center">
+                                            <i class="fas fa-book text-green-600"></i>
+                                        </div>
+                                        <div class="ml-4">
+                                            <div class="text-sm font-medium text-gray-900">Agenda Minimalista</div>
+                                            <div class="text-sm text-gray-500">Ref: AM-2023</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">398</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">€2,786</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                        <div class="bg-green-600 h-2.5 rounded-full" style="width: 32%"></div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                        <i class="fas fa-arrow-up mr-1"></i> 15%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0 h-10 w-10 bg-purple-100 rounded-full flex items-center justify-center">
+                                            <i class="fas fa-book text-purple-600"></i>
+                                        </div>
+                                        <div class="ml-4">
+                                            <div class="text-sm font-medium text-gray-900">Agenda Creativa</div>
+                                            <div class="text-sm text-gray-500">Ref: AC-2023</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">278</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">€1,946</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                        <div class="bg-purple-600 h-2.5 rounded-full" style="width: 22%"></div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                                        <i class="fas fa-arrow-down mr-1"></i> 4%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0 h-10 w-10 bg-yellow-100 rounded-full flex items-center justify-center">
+                                            <i class="fas fa-book text-yellow-600"></i>
+                                        </div>
+                                        <div class="ml-4">
+                                            <div class="text-sm font-medium text-gray-900">Agenda Ejecutiva</div>
+                                            <div class="text-sm text-gray-500">Ref: AE-2023</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">120</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">€1,080</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                        <div class="bg-yellow-500 h-2.5 rounded-full" style="width: 10%"></div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                        <i class="fas fa-arrow-up mr-1"></i> 22%
+                                    </span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow p-6 mb-8">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-lg font-semibold text-gray-800">Progreso diario</h3>
+                    <div class="flex space-x-2">
+                        <button class="px-3 py-1 bg-gray-100 text-gray-700 rounded-md text-sm">Hoy</button>
+                        <button class="px-3 py-1 bg-gray-100 text-gray-700 rounded-md text-sm">Semana</button>
+                        <button class="px-3 py-1 bg-primary text-white rounded-md text-sm">Mes</button>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <div class="inline-block min-w-full align-middle">
+                        <div class="overflow-hidden">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead>
+                                    <tr>
+                                        <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Día</th>
+                                        <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ventas</th>
+                                        <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Facturación</th>
+                                        <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Objetivo diario</th>
+                                        <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">% Cumplido</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-200">
+                                    <tr>
+                                        <td class="px-3 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Lun, 3 Jun</td>
+                                        <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-500">42</td>
+                                        <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-500">€294</td>
+                                        <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-500">€400</td>
+                                        <td class="px-3 py-4 whitespace-nowrap">
+                                            <span class="text-sm text-red-500">73.5%</span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-3 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Mar, 4 Jun</td>
+                                        <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-500">68</td>
+                                        <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-500">€476</td>
+                                        <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-500">€400</td>
+                                        <td class="px-3 py-4 whitespace-nowrap">
+                                            <span class="text-sm text-green-500">119%</span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-3 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Mié, 5 Jun</td>
+                                        <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-500">55</td>
+                                        <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-500">€385</td>
+                                        <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-500">€400</td>
+                                        <td class="px-3 py-4 whitespace-nowrap">
+                                            <span class="text-sm text-yellow-500">96.3%</span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-3 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Jue, 6 Jun</td>
+                                        <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-500">73</td>
+                                        <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-500">€511</td>
+                                        <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-500">€400</td>
+                                        <td class="px-3 py-4 whitespace-nowrap">
+                                            <span class="text-sm text-green-500">127.8%</span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-3 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Vie, 7 Jun</td>
+                                        <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-500">61</td>
+                                        <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-500">€427</td>
+                                        <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-500">€400</td>
+                                        <td class="px-3 py-4 whitespace-nowrap">
+                                            <span class="text-sm text-green-500">106.8%</span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="bg-white border-t border-gray-200">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                <div class="flex flex-col md:flex-row justify-between items-center">
+                    <div class="flex items-center space-x-2 mb-4 md:mb-0">
+                        <i class="fas fa-book text-primary text-xl"></i>
+                        <span class="font-medium text-gray-800">AgendaMaster</span>
+                    </div>
+                    <div class="flex space-x-6">
+                        <a href="#" class="text-gray-500 hover:text-gray-700">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="#" class="text-gray-500 hover:text-gray-700">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="#" class="text-gray-500 hover:text-gray-700">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="mt-8 border-t border-gray-200 pt-8 md:flex md:items-center md:justify-between">
+                    <div class="flex space-x-6 md:order-2">
+                        <a href="#" class="text-gray-500 hover:text-gray-700 text-sm">Privacidad</a>
+                        <a href="#" class="text-gray-500 hover:text-gray-700 text-sm">Términos</a>
+                        <a href="#" class="text-gray-500 hover:text-gray-700 text-sm">Contacto</a>
+                    </div>
+                    <p class="mt-8 text-sm text-gray-500 md:mt-0 md:order-1">
+                        &copy; 2025 AgendaMaster. Todos los derechos reservados.
+                    </p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!--para añadir objetivos-->
+    <div id="goalModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white p-8 rounded-lg shadow-xl max-w-2xl w-full relative">
+            <button id="closeModal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl font-bold">&times;</button>
+
+            <h2 class="text-2xl font-semibold text-gray-800 mb-6 text-center">Configurar Objetivos Mensuales por Año</h2>
+
+            <div class="grid grid-cols-2 gap-4 mb-6 items-center">
+                <div>
+                    <label for="goalYearSelect" class="block text-gray-700 text-sm font-bold mb-2">Seleccionar Año:</label>
+                    <select id="goalYearSelect" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        </select>
+                </div>
+                <div>
+                    <label for="goalLineColor" class="block text-gray-700 text-sm font-bold mb-2">Color de la Línea:</label>
+                    <input type="color" id="goalLineColor" value="#FF0000" class="w-full h-10 rounded-md border border-gray-300">
+                </div>
+            </div>
+
+            <div id="monthlyGoalsGrid" class="grid grid-cols-3 gap-4 mb-6">
+                </div>
+
+            <div class="flex justify-end space-x-4">
+                <button id="saveGoals" class="bg-primary hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Guardar Objetivos</button>
+            </div>
+        </div>
+    </div>
+    <script src="../scripts/index.js"></script>
+</body>
+</html>
