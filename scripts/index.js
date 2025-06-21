@@ -5,6 +5,7 @@ const lastYearSameMonthRevenue = 7500;
 const monthlyGoal = 12000; // Este se mantiene para las tarjetas superiores
 const currentMonthSales = 1248;
 
+
 // Actualizar las tarjetas de estadísticas
 document.getElementById('currentMonthSales').textContent = `${currentMonthSales} uds.`;
 document.getElementById('currentMonthRevenue').textContent = `€${currentMonthRevenue.toLocaleString()}`;

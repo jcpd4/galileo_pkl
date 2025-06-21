@@ -140,7 +140,31 @@
             </div>
             <div class="bg-white rounded-lg shadow p-6 mb-8">
                 <div class="chart-container">
+                    <!--Gráfica-->
                     <canvas id="progressChart"></canvas>
+                </div>
+                <!--Etiquetas de facturación-->
+                 <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-4 mt-6">
+                        <div class="bg-gray-50 p-4 rounded-lg shadow-sm text-center">
+                            <p class="text-sm text-gray-500">Facturación Año Pasado</p>
+                            <p id="lastYearRevenueCard" class="text-xl font-bold text-gray-800">€0</p>
+                        </div>
+
+                        <div class="bg-gray-50 p-4 rounded-lg shadow-sm text-center">
+                            <p class="text-sm text-gray-500">Facturación Año Actual</p>
+                            <p id="currentYearRevenueCard" class="text-xl font-bold text-gray-800">€0</p>
+                        </div>
+
+                        <div class="bg-gray-50 p-4 rounded-lg shadow-sm text-center">
+                            <p class="text-sm text-gray-500">Estimación Año Completo</p>
+                            <p id="estimatedYearRevenueCard" class="text-xl font-bold text-gray-800">€0</p>
+                        </div>
+
+                        <div class="bg-gray-50 p-4 rounded-lg shadow-sm text-center">
+                            <p class="text-sm text-gray-500">Previsión por Objetivos</p>
+                            <p id="projectedRevenueFromGoalsCard" class="text-xl font-bold text-gray-800">€0</p>
+                        </div>
+                    </div>
                 </div>
             </div>
 
