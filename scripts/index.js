@@ -5,52 +5,14 @@ const lastYearSameMonthRevenue = 7500;
 const monthlyGoal = 12000; // Este se mantiene para las tarjetas superiores
 const currentMonthSales = 1248;
 
-
-// Actualizar las tarjetas de estadísticas
-document.getElementById('currentMonthSales').textContent = `${currentMonthSales} uds.`;
-document.getElementById('currentMonthRevenue').textContent = `€${currentMonthRevenue.toLocaleString()}`;
-document.getElementById('monthlyGoal').textContent = `€${monthlyGoal.toLocaleString()}`;
-
-const completionPercentage = (currentMonthRevenue / monthlyGoal * 100).toFixed(1);
-document.getElementById('goalCompletion').textContent = `${completionPercentage}% completado`;
-
-const lastMonthChange = (((currentMonthRevenue - lastMonthRevenue) / lastMonthRevenue) * 100).toFixed(1);
-const lastYearChange = (((currentMonthRevenue - lastYearSameMonthRevenue) / lastYearSameMonthRevenue) * 100).toFixed(1);
-
-document.querySelector('#currentMonthRevenue + p').innerHTML = `
-    <i class="fas fa-arrow-${lastMonthChange >= 0 ? 'up text-green-500' : 'down text-red-500'} mr-1"></i> ${Math.abs(lastMonthChange)}% vs mes pasado
-`;
-document.getElementById('yearlyComparison').textContent = `€${lastYearSameMonthRevenue.toLocaleString()}`;
-document.querySelector('#yearlyComparison + p').innerHTML = `
-    <i class="fas fa-arrow-${lastYearChange >= 0 ? 'up text-green-500' : 'down text-red-500'} mr-1"></i> ${Math.abs(lastYearChange)}% vs Junio 2024
-`;
-
-
-// Gráfica anual de la facturación
-// Datos de ejemplo para la gráfica de progreso mensual
-// Estos datos deberían venir de tu backend
-const facturacionAnioActual = [
-    10000, 11000, 9500, 12000, 10500, 8745, null, null, null, null, null, null // Junio es el mes actual, los siguientes son null
-];
-const facturacionAnioAnterior = [
-    9000, 10500, 9200, 11500, 10000, 7500, 8000, 8500, 9000, 10000, 11000, 12000
-];
-const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-
-// Obtener el mes y año actuales para ajustar la visualización y cargar objetivos
+// --- Variables globales y persistencia ---
+// Declarar anioActual, monthlyGoals, goalLineColor, etc., una sola vez.
 const fechaActual = new Date();
 const mesActual = fechaActual.getMonth(); // 0 para Enero, 11 para Diciembre
 const anioActual = fechaActual.getFullYear(); // Obtener el año actual
 
-// Asegurarse de que los meses futuros del año actual sean 'null'
-// Esto es importante para que la línea no se extienda más allá de los datos reales.
-for (let i = mesActual + 1; i < 12; i++) {
-    facturacionAnioActual[i] = null;
-}
-
-// --- Variables para objetivos globales y persistencia ---
-let monthlyGoals = JSON.parse(localStorage.getItem('monthlyGoals')) || {}; // { año: [mes1, mes2, ...], ...}
-let goalLineColor = localStorage.getItem('goalLineColor') || '#FF0000'; // Color por defecto para la línea de objetivo
+let monthlyGoals = {}; // Se inicializará con loadGoals()
+let goalLineColor = '#FF0000'; // Color por defecto para la línea de objetivo
 
 // Referencia global al gráfico para poder actualizarlo
 let progressChart;
@@ -72,7 +34,70 @@ function loadGoals() {
         goalLineColor = storedGoalColor;
     }
 }
-loadGoals(); // Cargar los objetivos al inicio
+
+// --- Llama a loadGoals para cargar los datos al inicio del script ---
+loadGoals();
+
+// --- Función para actualizar los datos de las tarjetas debajo de la gráfica ---
+function updateFinancialCards() {
+    // Variables de ejemplo para las tarjetas (ajusta estos valores según tus necesidades o cárgalos dinámicamente)
+    // NOTA: En una aplicación real, estos datos vendrían de una base de datos o API.
+    const lastYearTotalRevenue = 85000; // Ejemplo: Facturación total del año pasado
+    const currentYearToDateRevenue = 45000; // Ejemplo: Facturación acumulada de lo que llevamos de este año
+    const currentMonthNumber = new Date().getMonth() + 1; // Enero es 0, por eso +1
+
+    // Cálculo para Facturación Estimada Año Completo
+    const estimatedYearRevenue = (currentYearToDateRevenue / currentMonthNumber) * 12;
+
+    // Cálculo para Facturación Prevista (sumando todos los objetivos del año actual)
+    let totalProjectedFromGoals = 0;
+    if (monthlyGoals[anioActual]) {
+        totalProjectedFromGoals = monthlyGoals[anioActual].reduce((sum, goal) => sum + (parseFloat(goal) || 0), 0);
+    }
+
+    // Actualizar las tarjetas de facturación
+    document.getElementById('lastYearRevenueCard').textContent = `€${lastYearTotalRevenue.toLocaleString()}`;
+    document.getElementById('currentYearRevenueCard').textContent = `€${currentYearToDateRevenue.toLocaleString()}`;
+    document.getElementById('estimatedYearRevenueCard').textContent = `€${estimatedYearRevenue.toLocaleString()}`;
+    document.getElementById('projectedRevenueFromGoalsCard').textContent = `€${totalProjectedFromGoals.toLocaleString()}`;
+}
+
+// --- Actualizar las tarjetas de estadísticas principales ---
+document.getElementById('currentMonthSales').textContent = `${currentMonthSales} uds.`;
+document.getElementById('currentMonthRevenue').textContent = `€${currentMonthRevenue.toLocaleString()}`;
+document.getElementById('monthlyGoal').textContent = `€${monthlyGoal.toLocaleString()}`;
+
+const completionPercentage = (currentMonthRevenue / monthlyGoal * 100).toFixed(1);
+document.getElementById('goalCompletion').textContent = `${completionPercentage}% completado`;
+
+const lastMonthChange = (((currentMonthRevenue - lastMonthRevenue) / lastMonthRevenue) * 100).toFixed(1);
+const lastYearChange = (((currentMonthRevenue - lastYearSameMonthRevenue) / lastYearSameMonthRevenue) * 100).toFixed(1);
+
+document.querySelector('#currentMonthRevenue + p').innerHTML = `
+    <i class="fas fa-arrow-${lastMonthChange >= 0 ? 'up text-green-500' : 'down text-red-500'} mr-1"></i> ${Math.abs(lastMonthChange)}% vs mes pasado
+`;
+document.getElementById('yearlyComparison').textContent = `€${lastYearSameMonthRevenue.toLocaleString()}`;
+document.querySelector('#yearlyComparison + p').innerHTML = `
+    <i class="fas fa-arrow-${lastYearChange >= 0 ? 'up text-green-500' : 'down text-red-500'} mr-1"></i> ${Math.abs(lastYearChange)}% vs Junio ${anioActual - 1}
+`;
+
+
+// Gráfica anual de la facturación
+// Datos de ejemplo para la gráfica de progreso mensual
+// Estos datos deberían venir de tu backend
+const facturacionAnioActualData = [ // Renombrado para evitar conflicto con la variable anioActual
+    10000, 11000, 9500, 12000, 10500, 8745, null, null, null, null, null, null // Junio es el mes actual, los siguientes son null
+];
+const facturacionAnioAnterior = [
+    9000, 10500, 9200, 11500, 10000, 7500, 8000, 8500, 9000, 10000, 11000, 12000
+];
+const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+
+// Asegurarse de que los meses futuros del año actual sean 'null'
+// Esto es importante para que la línea no se extienda más allá de los datos reales.
+for (let i = mesActual + 1; i < 12; i++) {
+    facturacionAnioActualData[i] = null;
+}
 
 // Ajustar el tamaño del contenedor del gráfico
 document.querySelector('.chart-container').style.height = '400px';
@@ -86,7 +111,7 @@ progressChart = new Chart(ctx, { // Asignamos a la variable global
         datasets: [
             {
                 label: 'Año Actual',
-                data: facturacionAnioActual,
+                data: facturacionAnioActualData, // Usar la variable renombrada
                 borderColor: 'blue',
                 backgroundColor: 'rgba(0, 0, 255, 0.1)',
                 fill: false,
@@ -222,7 +247,6 @@ if (setGoalsBtn) { // Asegúrate de que el botón exista antes de añadir el lis
     setGoalsBtn.addEventListener('click', () => {
         goalModal.classList.remove('hidden');
         initializeYearSelect(); // Inicializa el selector de año y el color
-        // anioActual ya está disponible globalmente, pero initializeYearSelect setea goalYearSelect.value
         renderMonthlyGoalInputs(parseInt(goalYearSelect.value)); // Renderizar para el año actualmente seleccionado en el modal
     });
 }
@@ -259,15 +283,17 @@ saveGoalsBtn.addEventListener('click', () => {
     localStorage.setItem('goalLineColor', goalLineColor);
 
     // Actualizar la gráfica principal con los nuevos datos de objetivos
-    // Asumiendo que tu gráfica principal tiene un selector de año (ej. <select>)
     const chartSelectElement = document.querySelector('.relative select');
     const chartSelectValue = chartSelectElement ? chartSelectElement.value : '';
     const matchYear = chartSelectValue.match(/\d{4}/);
-    const currentSelectedYearInChart = matchYear ? parseInt(matchYear[0]) : anioActual; // Usa anioActual si no se encuentra el selector o el año
+    const currentSelectedYearInChart = matchYear ? parseInt(matchYear[0]) : anioActual;
 
     progressChart.data.datasets[2].data = monthlyGoals[currentSelectedYearInChart] || Array(12).fill(null);
     progressChart.data.datasets[2].borderColor = goalLineColor; // Actualizar el color de la línea
     progressChart.update();
+
+    // Después de guardar, también actualizamos las tarjetas financieras
+    updateFinancialCards();
 
     alert('Objetivos guardados y gráfica actualizada.');
     goalModal.classList.add('hidden'); // Ocultar el formulario después de guardar
@@ -276,10 +302,10 @@ saveGoalsBtn.addEventListener('click', () => {
 
 // Llama a esta función al cargar la página para asegurar que los objetivos estén cargados
 document.addEventListener('DOMContentLoaded', () => {
-    // initializeYearSelect() y renderMonthlyGoalInputs() se llaman al abrir el modal,
-    // así que no es necesario llamarlos aquí al inicio.
+    updateFinancialCards(); // Llama a la función para actualizar las tarjetas financieras al cargar la página
 });
 
 // Sample data for the table (you would replace this with real data)
 const products = [
-    { name: "Agenda Profesional", sales: 452, revenue: 3164, trend: "up" }];
+    { name: "Agenda Profesional", sales: 452, revenue: 3164, trend: "up" }
+];
