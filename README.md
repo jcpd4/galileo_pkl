@@ -9,7 +9,7 @@ El primer dia hice la estructura principal, y me centré en la gráfica mensual 
 
 **Hecho el primer dia:**
 - La gráfica lineal
-- Que se puestre los datos del años actual y el anterior
+- Que se muestre los datos del años actual y el anterior
 - Poder establece objetivos de facturación por més y verlo en la gráfica del color que quieras.
 
 **QUEDA POR HACER:**
