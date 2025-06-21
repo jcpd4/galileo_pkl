@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgendaMaster - Gestión de Familias de Productos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Configuración de Tailwind CSS (igual que en index.html)
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4F46E5',
+                        secondary: '#10B981',
+                        dark: '#1F2937',
+                        light: '#F9FAFB'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Estilos generales (puedes añadir los que tenías en index.html si no son específicos de allí) */
+        .chart-container {
+            height: 400px; /* Asegúrate de que el contenedor tenga una altura si vas a usar gráficos */
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans text-gray-800">
+    <nav class="bg-white shadow-sm p-4 flex justify-between items-center">
+        <div class="flex items-center space-x-4">
+            <img src="https://via.placeholder.com/40" alt="Logo AgendaMaster" class="h-10">
+            <a href="index.html" class="text-xl font-bold text-gray-800 hover:text-primary">AgendaMaster</a>
+        </div>
+        <div class="flex items-center space-x-6">
+            <a href="index.html" class="text-gray-600 hover:text-primary transition duration-150 ease-in-out">
+                <i class="fas fa-home mr-1"></i> Dashboard
+            </a>
+            <a href="families.html" class="text-primary font-semibold border-b-2 border-primary pb-1">
+                <i class="fas fa-box-open mr-1"></i> Familias
+            </a>
+            <button class="bg-primary text-white px-4 py-2 rounded-lg shadow hover:bg-opacity-90 transition duration-150 ease-in-out">
+                <i class="fas fa-user-circle mr-1"></i> Perfil
+            </button>
+        </div>
+    </nav>
+
+    <main class="container mx-auto p-6 md:p-8">
+        <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-6">Gestión de Familias de Productos</h1>
+
+        <section class="bg-white p-6 rounded-lg shadow-md mb-8">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4">Crear Nueva Familia</h2>
+            <form id="createFamilyForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="familyTitle" class="block text-sm font-medium text-gray-700 mb-1">Título de la Familia</label>
+                    <input type="text" id="familyTitle" name="familyTitle" required
+                           class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm">
+                </div>
+                <div>
+                    <label for="familyCountry" class="block text-sm font-medium text-gray-700 mb-1">País</label>
+                    <select id="familyCountry" name="familyCountry" required
+                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm">
+                        <option value="">Selecciona un país</option>
+                        <option value="ES">España</option>
+                        <option value="US">Estados Unidos</option>
+                        <option value="DE">Alemania</option>
+                        <option value="FR">Francia</option>
+                        <option value="IT">Italia</option>
+                        <option value="BE">Belgica</option>
+                        <option value="UK">Reino Unido</option>
+                        <option value="TR">Turquia</option>
+                        <option value="PL">Polonia</option>
+
+                        </select>
+                </div>
+                <div class="md:col-span-2">
+                    <label for="familyPhoto" class="block text-sm font-medium text-gray-700 mb-1">Foto (Opcional)</label>
+                    <input type="file" id="familyPhoto" name="familyPhoto" accept="image/*"
+                           class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary/90">
+                </div>
+                <div class="md:col-span-2 text-right">
+                    <button type="submit"
+                            class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-secondary hover:bg-secondary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-secondary transition duration-150 ease-in-out">
+                        <i class="fas fa-plus-circle mr-2"></i> Crear Familia
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <section class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4">Familias Existentes</h2>
+            <div id="productFamiliesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <p class="text-gray-500 text-center col-span-full" id="noFamiliesMessage">No hay familias de productos creadas aún.</p>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-white border-t border-gray-200 py-8 mt-12">
+        <div class="container mx-auto px-6 md:px-8">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="flex items-center space-x-4 mb-4 md:mb-0">
+                    <img src="https://via.placeholder.com/40" alt="Logo AgendaMaster" class="h-10">
+                    <span class="text-xl font-bold text-gray-800">AgendaMaster</span>
+                </div>
+                <div class="flex space-x-6 mb-4 md:mb-0">
+                    <a href="#" class="text-gray-500 hover:text-gray-700">
+                        <i class="fab fa-facebook-f"></i>
+                    </a>
+                    <a href="#" class="text-gray-500 hover:text-gray-700">
+                        <i class="fab fa-twitter"></i>
+                    </a>
+                    <a href="#" class="text-gray-500 hover:text-gray-700">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="mt-8 border-t border-gray-200 pt-8 md:flex md:items-center md:justify-between">
+                <div class="flex space-x-6 md:order-2">
+                    <a href="#" class="text-gray-500 hover:text-gray-700 text-sm">Privacidad</a>
+                    <a href="#" class="text-gray-500 hover:text-gray-700 text-sm">Términos</a>
+                    <a href="#" class="text-gray-500 hover:text-gray-700 text-sm">Contacto</a>
+                </div>
+                <p class="mt-8 text-sm text-gray-500 md:mt-0 md:order-1">
+                    &copy; 2025 AgendaMaster. Todos los derechos reservados.
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="../scripts/gestion_familia_producto.js"></script>
+</body>
+</html>
