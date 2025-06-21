@@ -21,6 +21,14 @@ El primer dia hice la estructura principal, y me centré en la gráfica mensual 
     - La Herramienta de crear pedido
     - Tener todas las etiquetas subidas para hacer la página de lista para imprimir
 
+### 📄 Entidades (EN) parte privada
+- Usuario
+- Pedido
+- Factura
+- Informe(la practica menciona que tenemos que hacer gráficas sobre informes de ventas de piezas, las que se venden más, las que se venden menos...)
+- Rol
+
+
 ## Bitácora de Desarrollo - Día 2
 
 **Fecha:** 21 de junio de 2025
